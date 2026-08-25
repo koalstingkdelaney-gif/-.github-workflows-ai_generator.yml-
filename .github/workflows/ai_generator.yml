@@ -2,8 +2,8 @@ name: Cloud AI Developer Tool Generator
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs once a day automatically in the cloud
-  workflow_dispatch: # Allows you to trigger it manually with one click from GitHub
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   generate-and-commit:
@@ -24,7 +24,6 @@ jobs:
           python3 -c '
           import os
           os.makedirs("tools", exist_ok=True)
-          # Placeholder for cloud generation logic or API call to your AI model
           filename = "tools/utility_script.py"
           with open(filename, "w") as f:
               f.write("# Auto-generated developer utility\nprint(\"Cloud tool active\")\n")
@@ -39,6 +38,14 @@ jobs:
         run: |
           git config --global user.name "GhostCorp-Cloud-Bot"
           git config --global user.email "bot@ghostcorp.internal"
-          git add tools/
-          git diff --staged --quiet || git commit -m "Add daily AI-generated developer utility tool"
-          git push
+          
+          # Ignore pycache files so they don't get tracked
+          echo "__pycache__/" >> .gitignore
+          
+          git add tools/ .gitignore
+          git diff --cached --quiet || git commit -m "Add daily AI-generated developer utility tool"
+          
+          # Pull any remote changes first to prevent rejection
+          git pull origin main --rebase || echo "No rebase needed"
+          
+          git push origin main
